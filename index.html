@@ -1,86 +1,79 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ur" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="manifest" href="manifest.json" />
-  <title>MEPCO Bill Manager</title>
+  <meta charset="UTF-8">
+  <title>اردو اے آئی بل فارم</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: white;
-      padding: 20px;
-    }
-    .logo {
-      width: 100px;
-      margin-bottom: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    th, td {
-      border: 1px solid #333;
-      padding: 8px;
-      text-align: center;
-    }
-    button {
-      padding: 10px;
-      margin-top: 10px;
-      background-color: green;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    input, select {
-      padding: 8px;
-      margin: 5px 0;
-      width: 100%;
-    }
+    body { font-family: 'Noto Nastaliq Urdu', sans-serif; background-color: #f7f7f7; padding: 20px; direction: rtl; }
+    .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
+    h2 { text-align: center; color: #006699; }
+    label { font-weight: bold; margin-top: 10px; display: block; }
+    input, button { width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 10px; }
   </style>
 </head>
 <body>
-  <img src="logo.png" alt="Logo" class="logo" />
+  <div class="container">
+    <h2>MEPCO بل فارم</h2>
+    <label>ریفرنس نمبر:</label>
+    <input type="text" id="ref" placeholder="مثلاً 1234567890">
 
-  <h2>MEPCO Bill Manager</h2>
+    <label>نام:</label>
+    <input type="text" id="name">
 
-  <label>Name:</label>
-  <input type="text" id="name" placeholder="Enter Name" />
+    <label>ٹوٹل رقم:</label>
+    <input type="number" id="amount">
 
-  <label>Reference No:</label>
-  <input type="text" id="ref" placeholder="Enter Reference Number" />
+    <label>جمع رقم:</label>
+    <input type="number" id="paid">
 
-  <label>Bill Amount (PKR):</label>
-  <input type="number" id="bill" placeholder="Enter Bill Amount" />
+    <label>بقایا رقم:</label>
+    <input type="number" id="balance">
 
-  <label>Cash Paid (PKR):</label>
-  <input type="number" id="paid" placeholder="Enter Cash Paid" />
+    <button onclick="saveData()">ریکارڈ محفوظ کریں</button>
+    <button onclick="searchData()">ریکارڈ تلاش کریں</button>
 
-  <label>Payment Type:</label>
-  <select id="type">
-    <option value="Cash">Cash</option>
-    <option value="Due">Due</option>
-  </select>
+    <p id="result"></p>
+  </div>
 
-  <button onclick="addRecord()">Add</button>
-  <button onclick="downloadAll()">Download All Records</button>
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyXY8GkBcjePJ6jjLQdvL2ivsiBFNmckBGpolGaDm9DOp8YdFF6X0oSkmhdwf0BgTXcxQ/exec";
 
-  <table id="recordsTable">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Name</th>
-        <th>Reference</th>
-        <th>Bill</th>
-        <th>Paid</th>
-        <th>Type</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    function saveData() {
+      const formData = new FormData();
+      formData.append("ReferenceNumber", document.getElementById("ref").value);
+      formData.append("Name", document.getElementById("name").value);
+      formData.append("Amount", document.getElementById("amount").value);
+      formData.append("Paid", document.getElementById("paid").value);
+      formData.append("Balance", document.getElementById("balance").value);
 
-  <script src="script.js"></script>
+      fetch(scriptURL, { method: "POST", body: formData })
+        .then(response => response.text())
+        .then(result => {
+          document.getElementById("result").innerText = "✅ ریکارڈ محفوظ ہو گیا!";
+        })
+        .catch(error => {
+          document.getElementById("result").innerText = "❌ خرابی ہوئی، دوبارہ کوشش کریں۔";
+        });
+    }
+
+    function searchData() {
+      const ref = document.getElementById("ref").value;
+      fetch(`${scriptURL}?ReferenceNumber=${ref}`)
+        .then(res => res.text())
+        .then(text => {
+          try {
+            const data = JSON.parse(text);
+            document.getElementById("name").value = data.Name;
+            document.getElementById("amount").value = data.Amount;
+            document.getElementById("paid").value = data.Paid;
+            document.getElementById("balance").value = data.Balance;
+            document.getElementById("result").innerText = "🔍 ریکارڈ مل گیا!";
+          } catch {
+            document.getElementById("result").innerText = "❌ ریکارڈ نہیں ملا!";
+          }
+        });
+    }
+  </script>
 </body>
 </html>
