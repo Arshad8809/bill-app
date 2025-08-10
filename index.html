@@ -1,79 +1,64 @@
-
 <!DOCTYPE html>
-<html lang="ur" dir="rtl">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>اردو اے آئی بل فارم</title>
-  <style>
-    body { font-family: 'Noto Nastaliq Urdu', sans-serif; background-color: #f7f7f7; padding: 20px; direction: rtl; }
-    .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
-    h2 { text-align: center; color: #006699; }
-    label { font-weight: bold; margin-top: 10px; display: block; }
-    input, button { width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 10px; }
-  </style>
+    <title>بل کا ڈیٹا محفوظ کریں</title>
 </head>
 <body>
-  <div class="container">
-    <h2>MEPCO بل فارم</h2>
-    <label>ریفرنس نمبر:</label>
-    <input type="text" id="ref" placeholder="مثلاً 1234567890">
 
-    <label>نام:</label>
-    <input type="text" id="name">
+  <h2>بل کا ڈیٹا محفوظ کریں</h2>
 
-    <label>ٹوٹل رقم:</label>
-    <input type="number" id="amount">
+  <form id="billForm">
+    <label for="name">نام:</label><br>
+    <input type="text" id="name" name="name" required><br><br>
 
-    <label>جمع رقم:</label>
-    <input type="number" id="paid">
+    <label for="referenceNumber">حوالہ نمبر:</label><br>
+    <input type="text" id="referenceNumber" name="referenceNumber" required><br><br>
 
-    <label>بقایا رقم:</label>
-    <input type="number" id="balance">
+    <label for="totalAmount">کل رقم:</label><br>
+    <input type="number" id="totalAmount" name="totalAmount" required><br><br>
 
-    <button onclick="saveData()">ریکارڈ محفوظ کریں</button>
-    <button onclick="searchData()">ریکارڈ تلاش کریں</button>
+    <label for="paidAmount">ادا کی گئی رقم:</label><br>
+    <input type="number" id="paidAmount" name="paidAmount" required><br><br>
 
-    <p id="result"></p>
-  </div>
+    <button type="submit">ڈیٹا محفوظ کریں</button>
+  </form>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbyXY8GkBcjePJ6jjLQdvL2ivsiBFNmckBGpolGaDm9DOp8YdFF6X0oSkmhdwf0BgTXcxQ/exec";
+    document.getElementById('billForm').addEventListener('submit', function(event) {
+      event.preventDefault();
 
-    function saveData() {
-      const formData = new FormData();
-      formData.append("ReferenceNumber", document.getElementById("ref").value);
-      formData.append("Name", document.getElementById("name").value);
-      formData.append("Amount", document.getElementById("amount").value);
-      formData.append("Paid", document.getElementById("paid").value);
-      formData.append("Balance", document.getElementById("balance").value);
+      const name = document.getElementById('name').value;
+      const referenceNumber = document.getElementById('referenceNumber').value;
+      const totalAmount = parseFloat(document.getElementById('totalAmount').value);
+      const paidAmount = parseFloat(document.getElementById('paidAmount').value);
+      const remainingAmount = totalAmount - paidAmount;
 
-      fetch(scriptURL, { method: "POST", body: formData })
-        .then(response => response.text())
-        .then(result => {
-          document.getElementById("result").innerText = "✅ ریکارڈ محفوظ ہو گیا!";
-        })
-        .catch(error => {
-          document.getElementById("result").innerText = "❌ خرابی ہوئی، دوبارہ کوشش کریں۔";
-        });
-    }
+      const deploymentUrl = 'https://script.google.com/macros/s/AKfycbwFV0yNiXqp5lVC7vlMeUogZaP_DqoqbfI7WqksA0gfOKPqsiO7r3J0NK0kAm07yrWlAg/exec';
 
-    function searchData() {
-      const ref = document.getElementById("ref").value;
-      fetch(`${scriptURL}?ReferenceNumber=${ref}`)
-        .then(res => res.text())
-        .then(text => {
-          try {
-            const data = JSON.parse(text);
-            document.getElementById("name").value = data.Name;
-            document.getElementById("amount").value = data.Amount;
-            document.getElementById("paid").value = data.Paid;
-            document.getElementById("balance").value = data.Balance;
-            document.getElementById("result").innerText = "🔍 ریکارڈ مل گیا!";
-          } catch {
-            document.getElementById("result").innerText = "❌ ریکارڈ نہیں ملا!";
-          }
-        });
-    }
+      fetch(deploymentUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: name,
+          referenceNumber: referenceNumber,
+          totalAmount: totalAmount,
+          paidAmount: paidAmount,
+          remainingAmount: remainingAmount
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('ڈیٹا کامیابی سے محفوظ ہو گیا ہے!');
+        console.log('Success:', data);
+      })
+      .catch((error) => {
+        alert('ڈیٹا محفوظ کرتے وقت خرابی پیش آ گئی ہے۔');
+        console.error('Error:', error);
+      });
+    });
   </script>
+
 </body>
 </html>
